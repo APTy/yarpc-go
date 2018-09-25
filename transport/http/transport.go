@@ -271,7 +271,7 @@ func (c *httpConn) Close() error {
 	if c.closeCalled != nil {
 		c.closeCalled()
 	}
-	c.transport.OnDisconnected(c.address)
+	c.transport.onDisconnected(c.address)
 
 	return c.Conn.Close()
 }
@@ -292,7 +292,7 @@ func (d *dialerWrapper) Dial(network, address string) (net.Conn, error) {
 		if d.dialerCalled != nil {
 			d.dialerCalled()
 		}
-		d.transport.OnDisconnected(address)
+		d.transport.onDisconnected(address)
 	}
 
 	return &httpConn{
@@ -384,8 +384,8 @@ func (a *Transport) RetainPeer(pid peer.Identifier, sub peer.Subscriber) (peer.P
 	return p, nil
 }
 
-// OnDisconnected marks a peer as being potentially down.
-func (a *Transport) OnDisconnected(addr string) error {
+// onDisconnected marks a peer as being potentially down.
+func (a *Transport) onDisconnected(addr string) error {
 	a.lock.Lock()
 	defer a.lock.Unlock()
 
