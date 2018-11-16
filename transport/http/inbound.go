@@ -22,6 +22,7 @@ package http
 
 import (
 	"context"
+	"crypto/tls"
 	"net"
 	"net/http"
 	"strings"
@@ -95,6 +96,13 @@ func ShutdownTimeout(timeout time.Duration) InboundOption {
 	}
 }
 
+// TLSConfig sets the TLS configuration.
+func TLSConfig(tlsConfig *tls.Config) InboundOption {
+	return func(i *Inbound) {
+		i.tlsConfig = tlsConfig
+	}
+}
+
 // NewInbound builds a new HTTP inbound that listens on the given address and
 // sharing this transport.
 func (t *Transport) NewInbound(addr string, opts ...InboundOption) *Inbound {
@@ -128,6 +136,7 @@ type Inbound struct {
 	transport       *Transport
 	grabHeaders     map[string]struct{}
 	interceptor     func(http.Handler) http.Handler
+	tlsConfig       *tls.Config
 
 	once *lifecycle.Once
 
@@ -185,8 +194,9 @@ func (i *Inbound) start() error {
 	}
 
 	i.server = intnet.NewHTTPServer(&http.Server{
-		Addr:    i.addr,
-		Handler: httpHandler,
+		Addr:      i.addr,
+		Handler:   httpHandler,
+		TLSConfig: i.tlsConfig,
 	})
 	if err := i.server.ListenAndServe(); err != nil {
 		return err

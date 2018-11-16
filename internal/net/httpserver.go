@@ -22,6 +22,7 @@ package net
 
 import (
 	"context"
+	"crypto/tls"
 	"errors"
 	"net"
 	"net/http"
@@ -90,6 +91,9 @@ func (h *HTTPServer) ListenAndServe() error {
 	h.listener, err = net.Listen("tcp", addr)
 	if err != nil {
 		return err
+	}
+	if h.Server.TLSConfig != nil {
+		h.listener = tls.NewListener(h.listener, h.TLSConfig)
 	}
 
 	go h.serve(h.listener)
